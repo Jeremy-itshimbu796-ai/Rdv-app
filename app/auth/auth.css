@@ -1,0 +1,243 @@
+.auth-shell {
+  max-inline-size: 420px;
+  margin: 0 auto;
+  min-block-size: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 24px;
+  background: var(--bg);
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  margin-block-end: 36px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: opacity 200ms ease;
+}
+
+.auth-logo:hover {
+  opacity: 0.8;
+}
+
+.auth-logo .badge {
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 50%;
+  background: var(--marigold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+/* higher specificity than .card-spotlight so SpotlightCard's dark defaults never leak into the theme */
+.auth-card.card-spotlight {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.auth-card h1 {
+  font-size: 28px;
+  margin-block-end: 8px;
+  color: var(--ink);
+}
+
+.auth-card .sub {
+  color: var(--ink-muted);
+  font-size: 14.5px;
+  margin-block-end: 28px;
+}
+
+.auth-champ {
+  margin-block-end: 16px;
+}
+
+.auth-champ label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-block-end: 6px;
+  color: var(--ink);
+}
+
+.auth-champ input {
+  inline-size: 100%;
+  padding: 13px 15px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--ink);
+  transition: all 200ms ease;
+}
+
+.auth-champ input::placeholder {
+  color: var(--ink-muted);
+}
+
+.auth-champ input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(45, 160, 142, 0.1);
+}
+
+.auth-champ .hint {
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  margin-block-start: 6px;
+}
+
+.auth-submit {
+  inline-size: 100%;
+  background: var(--marigold);
+  color: var(--ink);
+  border: none;
+  padding: 15px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-block-start: 8px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: inherit;
+}
+
+.auth-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(249, 190, 71, 0.25);
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.auth-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-erreur {
+  background: #fdf1ec;
+  border: 1px solid var(--clay);
+  color: var(--clay);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-block-end: 18px;
+  animation: slideDown 300ms ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-switch {
+  text-align: center;
+  margin-block-start: 24px;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.auth-switch a {
+  color: var(--teal-dark);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.auth-switch a:hover {
+  color: var(--teal);
+  text-decoration: underline;
+}
+
+.auth-slug-preview {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  color: var(--teal-dark);
+  background: #f2efe8;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-block-start: 8px;
+  word-break: break-all;
+  border: 1px solid transparent;
+  transition: all 200ms ease;
+}
+
+.auth-slug-preview:hover {
+  border-color: var(--teal);
+  background: rgba(45, 160, 142, 0.05);
+}
+
+.auth-step-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--teal);
+  margin-block-end: 16px;
+  display: inline-block;
+}
+
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-block-start: 8px;
+}
+
+.password-strength-bar {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.password-strength-segment {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 200ms ease;
+}
+
+.password-strength-1 {
+  background: var(--clay);
+}
+
+.password-strength-2 {
+  background: var(--marigold);
+}
+
+.password-strength-3,
+.password-strength-4 {
+  background: var(--teal);
+}
+
+.password-strength-label {
+  font-size: 12px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
