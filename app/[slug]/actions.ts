@@ -1,14 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/supabase-server";
-import { disponibilitesSchema, reservationSchema } from "@/lib/validation";
-import { ipClient, limiteAtteinte } from "@/lib/rate-limit";
 
 export interface ReservationInput {
-  slug: string;
+  businessId: string;
   serviceId: string;
-  date: string;
-  heure: string;
+  dureeMinutes: number;
+  dateHeure: string;
   clientNom: string;
   clientTelephone: string;
 }
@@ -19,73 +17,72 @@ export interface ReservationResult {
   appointmentId?: string;
 }
 
-export interface CreneauPublic {
-  heure: string;
-  disponible: boolean;
-}
-
-export async function chargerCreneauxPublics(input: {
-  slug: string;
-  serviceId: string;
-  date: string;
-}): Promise<{ success: boolean; creneaux: CreneauPublic[]; error?: string }> {
-  const resultat = disponibilitesSchema.safeParse(input);
-  if (!resultat.success) {
-    return { success: false, creneaux: [], error: "La date ou le service est invalide." };
-  }
-
-  const supabase = createClient();
-  const { data, error } = await supabase.rpc("lister_creneaux_publics", {
-    p_slug: resultat.data.slug,
-    p_service_id: resultat.data.serviceId,
-    p_date: resultat.data.date,
-  });
-
-  if (error) {
-    console.error("Erreur de chargement des creneaux:", error.code);
-    return { success: false, creneaux: [], error: "Les disponibilites sont temporairement indisponibles." };
-  }
-
-  return { success: true, creneaux: (data ?? []) as CreneauPublic[] };
-}
-
-/**
- * Crée un rendez-vous. Revérifie la disponibilité côté serveur
- * juste avant l'insertion pour éviter les doubles réservations
- * (deux personnes qui cliquent sur le même créneau en même temps).
- */
 export async function creerReservation(
   input: ReservationInput
 ): Promise<ReservationResult> {
-  if (limiteAtteinte(`reservation:${ipClient()}`, 5, 10 * 60_000)) {
-    return { success: false, error: "Trop de tentatives. Réessaie dans quelques minutes." };
-  }
-
-  const resultat = reservationSchema.safeParse(input);
-  if (!resultat.success) {
-    return { success: false, error: resultat.error.issues[0]?.message ?? "Les informations sont invalides." };
-  }
-
   const supabase = createClient();
 
-  const { data, error } = await supabase.rpc("creer_reservation_publique", {
-    p_slug: resultat.data.slug,
-    p_service_id: resultat.data.serviceId,
-    p_date: resultat.data.date,
-    p_heure: resultat.data.heure,
-    p_client_nom: resultat.data.clientNom,
-    p_client_telephone: resultat.data.clientTelephone,
+  console.log("=== DEBUT RESERVATION ===");
+  console.log("Input recu:", JSON.stringify(input));
+
+  if (!input.clientNom.trim() || !input.clientTelephone.trim()) {
+    return { success: false, error: "Nom et téléphone sont obligatoires." };
+  }
+
+  const debut = new Date(input.dateHeure);
+  const fin = new Date(debut.getTime() + input.dureeMinutes * 60000);
+
+  const { data: conflits, error: erreurConflits } = await supabase
+    .from("appointments")
+    .select("id, date_heure, duree_minutes")
+    .eq("business_id", input.businessId)
+    .eq("statut", "confirme")
+    .gte("date_heure", new Date(debut.getTime() - 4 * 60 * 60000).toISOString())
+    .lte("date_heure", fin.toISOString());
+
+  if (erreurConflits) {
+    console.log("ERREUR lors de la verification des conflits:", JSON.stringify(erreurConflits));
+    return { success: false, error: `Erreur conflits: ${erreurConflits.message}` };
+  }
+
+  console.log("Conflits trouves:", JSON.stringify(conflits));
+
+  const dejaPris = (conflits ?? []).some((rdv) => {
+    const debutRdv = new Date(rdv.date_heure);
+    const finRdv = new Date(debutRdv.getTime() + rdv.duree_minutes * 60000);
+    return debut < finRdv && fin > debutRdv;
   });
 
-  if (error) {
-    console.error("Erreur de reservation:", error.code);
+  if (dejaPris) {
     return {
       success: false,
-      error: error.message.includes("SLOT_UNAVAILABLE")
-        ? "Ce creneau vient d'etre reserve. Merci d'en choisir un autre."
-        : "La reservation n'a pas pu etre confirmee. Reessaie.",
+      error: "Ce créneau vient d'être réservé par quelqu'un d'autre. Merci d'en choisir un autre.",
     };
   }
 
-  return { success: true, appointmentId: data };
+  const { data, error } = await supabase
+    .from("appointments")
+    .insert({
+      business_id: input.businessId,
+      service_id: input.serviceId,
+      client_nom: input.clientNom.trim(),
+      client_telephone: input.clientTelephone.trim(),
+      date_heure: debut.toISOString(),
+      duree_minutes: input.dureeMinutes,
+      statut: "confirme",
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.log("ERREUR INSERTION:", JSON.stringify(error));
+    console.log("Message:", error.message);
+    console.log("Code:", error.code);
+    console.log("Details:", error.details);
+    console.log("Hint:", error.hint);
+    return { success: false, error: `Erreur insertion: ${error.message} (code: ${error.code})` };
+  }
+
+  console.log("=== RESERVATION REUSSIE ===", data);
+  return { success: true, appointmentId: data.id };
 }
