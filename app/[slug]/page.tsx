@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import FormulaireReservation from "./formulaire-reservation";
 import { MapPinIcon } from "@/components/Icons";
-import FadeContent from "@/components/FadeContent";
 import "./booking.css";
 
 // URL publique : tonapp.com/nom-du-commerce
@@ -47,7 +46,6 @@ export default async function BookingPage({
       )}
 
       <div className="booking-header-shell">
-        <FadeContent duration={600}>
           <div className={`booking-header ${business.banniere_url ? "booking-header-with-banniere" : ""}`}>
             <div className="booking-identity">
               {business.logo_url ? (
@@ -74,7 +72,6 @@ export default async function BookingPage({
             )}
             {business.description && <p>{business.description}</p>}
           </div>
-        </FadeContent>
       </div>
 
       <FormulaireReservation slug={params.slug} services={services ?? []} />
