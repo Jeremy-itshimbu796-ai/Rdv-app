@@ -46,7 +46,7 @@ export default async function BookingPage({
         </div>
       )}
 
-      <div className="booking-shell" style={{ paddingBottom: 0 }}>
+      <div className="booking-header-shell">
         <FadeContent duration={600}>
           <div className={`booking-header ${business.banniere_url ? "booking-header-with-banniere" : ""}`}>
             <div className="booking-identity">
