@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { type ActionResult, actionError } from "@/lib/action-result";
 
-const PRIX_MENSUEL_USD = 20;
+type PlanId = "basique" | "pro";
+
+const PLANS: Record<PlanId, { prix: number; envVarProduit: string }> = {
+  basique: { prix: 10, envVarProduit: "CHARIOW_PRODUCT_ID_BASIQUE" },
+  pro: { prix: 20, envVarProduit: "CHARIOW_PRODUCT_ID_PRO" },
+};
 
 function messageErreurChariow(payload: unknown): string {
   if (!payload || typeof payload !== "object") return "Le prestataire de paiement est indisponible.";
@@ -24,7 +29,7 @@ function messageErreurChariow(payload: unknown): string {
 }
 
 function messageErreurPaiement(error: { code?: string; message: string }): string {
-  if (error.code === "PGRST204" || error.message.includes("reference_interne")) {
+  if (error.code === "PGRST204" || error.message.includes("reference_interne") || error.message.includes("plan_id")) {
     return "La migration des paiements Chariow n'est pas encore appliquee dans Supabase.";
   }
   if (error.code === "42501") {
@@ -33,12 +38,15 @@ function messageErreurPaiement(error: { code?: string; message: string }): strin
   return "Impossible de preparer le paiement. Veuillez reessayer.";
 }
 
-export async function commencerPaiement(): Promise<ActionResult> {
+export async function commencerPaiement(planId: PlanId): Promise<ActionResult> {
+  const plan = PLANS[planId];
+  if (!plan) return actionError("Formule d'abonnement invalide.");
+
   const cleChariow = process.env.CHARIOW_API_KEY;
-  const produitChariow = process.env.CHARIOW_PRODUCT_ID;
+  const produitChariow = process.env[plan.envVarProduit] ?? (planId === "pro" ? process.env.CHARIOW_PRODUCT_ID : undefined);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (!cleChariow || !produitChariow || !appUrl) {
-    return actionError("Le paiement n'est pas encore configure.");
+    return actionError("Le paiement n'est pas encore configure pour cette formule.");
   }
 
   const supabase = createClient();
@@ -57,8 +65,9 @@ export async function commencerPaiement(): Promise<ActionResult> {
     business_id: business.id,
     reference_interne: reference,
     fournisseur: "chariow",
-    montant: PRIX_MENSUEL_USD,
+    montant: plan.prix,
     devise: "USD",
+    plan_id: planId,
   });
   if (paymentError) return actionError(messageErreurPaiement(paymentError));
 
@@ -76,7 +85,7 @@ export async function commencerPaiement(): Promise<ActionResult> {
       last_name: "TonApp",
       phone: { number: telephone, country_code: "CD" },
       redirect_url: `${appUrl.replace(/\/$/, "")}/dashboard/abonnement?paiement=retour`,
-      custom_metadata: { reference_interne: reference, business_id: business.id },
+      custom_metadata: { reference_interne: reference, business_id: business.id, plan_id: planId },
     }),
   });
   const payload = await response.json().catch(() => null);
