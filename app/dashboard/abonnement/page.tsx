@@ -95,7 +95,7 @@ export default async function AbonnementPage() {
               </ul>
 
               <SubscribeButton
-                action={commencerPaiement.bind(null, plan.id)}
+                action={() => commencerPaiement(plan.id)}
                 label={estPlanActif ? "Renouveler pour un mois" : `Choisir ${plan.nom}`}
               />
             </div>
