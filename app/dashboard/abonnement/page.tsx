@@ -1,7 +1,9 @@
+import "./subscription.css";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { commencerPaiement } from "./actions";
 import { SubscribeButton } from "./subscribe-button";
+
 
 const formatterMontant = new Intl.NumberFormat("fr-FR", {
   style: "currency",
