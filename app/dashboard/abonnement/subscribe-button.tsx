@@ -9,7 +9,7 @@ export function SubscribeButton({
   action,
   label,
 }: {
-  action: () => Promise<ActionResult>;
+  action: (...args: never[]) => Promise<ActionResult>;
   label: string;
 }) {
   const [pending, startTransition] = useTransition();
