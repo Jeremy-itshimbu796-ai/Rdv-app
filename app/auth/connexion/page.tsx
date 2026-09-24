@@ -9,6 +9,8 @@ import SpotlightCard from "@/components/SpotlightCard";
 // @ts-ignore
 import "../auth.css";
 
+const EMAILS_ADMIN = ["jeremyitshimbu796@gmail.com"];
+
 export default function ConnexionPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -39,7 +41,11 @@ export default function ConnexionPage() {
       return;
     }
 
-    router.push("/dashboard");
+    const destination = EMAILS_ADMIN.includes(email.toLowerCase())
+      ? "/admin"
+      : "/dashboard";
+
+    router.push(destination);
     router.refresh();
   }
 
