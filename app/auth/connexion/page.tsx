@@ -93,6 +93,10 @@ export default function ConnexionPage() {
             </button>
           </form>
 
+          <p className="auth-switch" style={{ marginTop: "8px" }}>
+            <a href="/auth/mot-de-passe-oublie">Mot de passe oublié ?</a>
+          </p>
+
           <p className="auth-switch">
             Pas encore de compte ? <a href="/auth/inscription">Créer mon espace</a>
           </p>
