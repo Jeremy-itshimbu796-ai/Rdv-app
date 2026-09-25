@@ -26,11 +26,11 @@ export default function MotDePasseOubliePage() {
     });
 
     setEnCours(false);
-
     if (error) {
-      setErreur("Une erreur est survenue. Réessaie.");
-      return;
-    }
+        console.error("Erreur reset password:", error);
+        setErreur(`Erreur: ${error.message}`);
+    return;
+}
 
     setEnvoye(true);
   }
