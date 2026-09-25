@@ -43,8 +43,8 @@ export default function DeleteButton({
   return (
     <div className="admin-confirm-box">
       <p>
-        Supprimer <strong>{businessNom}</strong> et toutes ses données
-        (rendez-vous, services, paiements) ? Cette action est irréversible.
+        Supprimer <strong>{businessNom}</strong> et toutes ses donnees
+        (rendez-vous, services, paiements) ? Cette action est irreversible.
       </p>
       {erreur && <p className="admin-error">{erreur}</p>}
       <div className="admin-confirm-actions">
